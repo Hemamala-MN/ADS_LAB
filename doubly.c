@@ -1,118 +1,105 @@
-
-#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
-struct Node* head=NULL;
-struct Node
-{
-    int data;
-    struct Node* npx;
-};
+#include <stdint.h>
+#include <stdbool.h>
 
-struct Node* XOR(struct Node* a, struct Node* b)
+typedef struct node {
+    int item;
+    struct node *link;
+} node;
+
+node *head, *tail;
+
+node *xor(node *a, node *b)
 {
-    return (struct Node*)((uintptr_t)(a)^ (uintptr_t)(b));
+    return (node*) ((uintptr_t) a ^ (uintptr_t) b);
 }
-void insert(struct Node** head,int data)
+
+void insert(int item)
 {
-    struct Node* newnode= (struct Node*)malloc(sizeof(struct Node));
-    newnode->data=data;
-    newnode->npx = *head;
-    if(*head!=NULL)
-    {
-        struct Node* next = XOR((*head)->npx, NULL);
-        (*head)->npx = XOR(newnode,(*head)->npx);
+    node *ptr = (node*) malloc(sizeof(node));
+    ptr->item = item;
+
+    if (NULL == head) {
+        ptr->link = NULL;
+        head = tail = ptr;
+    } else{
+        ptr->link = xor(tail, NULL);
+        tail->link = xor(ptr, xor(tail->link, NULL));
+        tail = ptr;
     }
-
-    *head= newnode;
-
 }
 
-void printList(struct Node** head)
+int delete()
 {
+    int item;
+    node *ptr;
+    if (NULL == head) {
+        printf("Empty list.\n");
+        exit(1);
+    } else  {
+        ptr = tail;
+        item = ptr->item;
+        node *prev = xor(ptr->link, NULL);
+        if (NULL == prev) head = NULL;
+        else prev->link= xor(ptr, xor(prev->link, NULL));
+        tail = prev;
 
-    struct Node* curr = *head;
+    }
+    free(ptr);
+    ptr = NULL;
+    return item;
+}
 
+void display()
+{
+    node *curr = head;
+    node *prev = NULL, *next;
 
-    struct Node* prev = NULL;
-
-
-    struct Node* next;
-
-
-    while (curr != NULL) {
-
-
-        printf("%d ", curr->data);
-
-
-        next = XOR(prev, curr->npx);
-
-
+    printf("\nList elements are : ");
+    while (NULL != curr) {
+        printf("%d ", curr->item);
+        next = xor(prev, curr->link);
         prev = curr;
-
-
         curr = next;
     }
+
+    printf("\n");
 }
-struct Node* delEnd(struct Node** head)
-{
 
-    if (*head == NULL)
-        printf("List is empty");
-    else {
-
-
-        struct Node* curr = *head;
-
-
-        struct Node* prev = NULL;
-
-
-        struct Node* next;
-
-
-        while (XOR(curr->npx, prev) != NULL) {
-
-
-            next = XOR(prev, curr->npx);
-
-
-            prev = curr;
-
-
-            curr = next;
-        }
-
-        if (prev != NULL)
-            prev->npx = XOR(XOR(prev->npx, curr), NULL);
-
-
-        else
-            *head = NULL;
-
-
-        free(curr);
-    }
-
-
-    return *head;
-}
 int main()
 {
-    int n,item;
-    printf("Enter the number of elements\n");
-    scanf("%d",&n);
-    printf("Elements to insert\n");
-    for(int i=0;i<n;i++)
+       int value;
+    int choice;
+    while(1)
     {
-        scanf("%d",&item);
-        insert(&head,item);
+    printf(" \n1.Insert \n");
+    printf("2.Delete \n");
+    printf("3.Display \n");
+    printf("4.Exit \n");
+    printf("Enter your choice : ");
+    scanf("%d",&choice);
+
+    switch (choice)
+        {
+            case 1 :
+            printf("Enter the value : ");
+            scanf("%d",&value);
+            insert(value);
+            break;
+            case 2 :
+            delete();
+            break;
+            case 3 :
+            display();
+            break;
+            case 4 :
+            exit(1);
+            break;
+            default:
+            printf("Invalid choice \n");
+        }
+
     }
-    printf("Before deletion\n");
-    printList(&head);
-    delEnd(&head);
-    printf("\n after deletion\n");
-    printList(&head);
 
 }
